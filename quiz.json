@@ -1,0 +1,69 @@
+{
+  "title": "Java Basics Quiz",
+  "description": "A short quiz to test your knowledge of Java fundamentals.",
+  "pages": [
+    {
+      "timeLimit": 20,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q1",
+          "title": "Which company originally developed Java?",
+          "choicesOrder": "random",
+          "choices": [
+            "Microsoft",
+            "Sun Microsystems",
+            "Apple",
+            "Google"
+          ],
+          "correctAnswer": "Sun Microsystems",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 15,
+      "elements": [
+        {
+          "type": "boolean",
+          "name": "q2",
+          "title": "Java is a statically typed programming language.",
+          "labelTrue": "True",
+          "labelFalse": "False",
+          "correctAnswer": true,
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 20,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q3",
+          "title": "What keyword is used to inherit a class in Java?",
+          "choicesOrder": "random",
+          "choices": [
+            "inherits",
+            "extends",
+            "implements",
+            "super"
+          ],
+          "correctAnswer": "extends",
+          "isRequired": true
+        }
+      ]
+    }
+  ],
+  "completedHtml": "<h4>You got <b>{correctAnswers}</b> out of <b>{questionCount}</b> correct.</h4>",
+  "completedHtmlOnCondition": [
+    {
+      "expression": "{correctAnswers} == 0",
+      "html": "<h4>Unfortunately, none of your answers are correct. Please try again.</h4>"
+    },
+    {
+      "expression": "{correctAnswers} == {questionCount}",
+      "html": "<h4>Excellent! You answered all questions correctly \ud83c\udf89</h4>"
+    }
+  ]
+}
