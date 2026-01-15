@@ -12,6 +12,10 @@ public class Boolean extends Element{
         this.labelFalse = labelFalse;
         this.correctAnswer = correctAnswer;
     }
+    @Override
+    public String getCorrectAnswerString() {
+        return correctAnswer ? labelTrue : labelFalse;
+    }
 
     public boolean isCorrectAnswer() {
         return correctAnswer;

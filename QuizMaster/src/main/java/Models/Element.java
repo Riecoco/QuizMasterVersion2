@@ -16,10 +16,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 //https://blogs.oracle.com/javamagazine/post/java-json-serialization-jackson
 
 public abstract class Element {
-    public String name;
-    public Type type;
-    public String title;
-    public boolean isRequired;
+    private String name;
+    private Type type;
+    private String title;
+    private boolean isRequired;
 
     public Element() {}
     public Element(String name, Type type, String title, boolean isRequired) {
@@ -57,7 +57,9 @@ public abstract class Element {
         return isRequired;
     }
 
-    public void setRequired(boolean required) {
-        isRequired = required;
+    public void setIsRequired(boolean isRequired) {
+        this.isRequired = isRequired;
     }
+
+    public abstract String getCorrectAnswerString();
 }

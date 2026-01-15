@@ -2,23 +2,18 @@ package factories;
 
 import Models.Element;
 import Models.Radiogroup;
-import javafx.geometry.HPos;
-import javafx.geometry.Pos;
-import javafx.scene.layout.GridPane;
+import Models.Boolean;
 import javafx.scene.layout.VBox;
 
 public class QuizViewBodyFactory {
-    public VBox createElementViewBody(Element element) {
-        //vbox container settings
-        VBox choiceBox = new VBox();
-        choiceBox.setSpacing(10);
-        choiceBox.setAlignment(Pos.CENTER_LEFT);
-        GridPane.setHalignment(choiceBox, HPos.LEFT);
 
-        //return a vbox of bool or radio group
-        if(element instanceof Radiogroup){
-            return new RadiogroupViewBody().buildViewBody(element, choiceBox);
+    public QuizViewBody createElementViewBody(Element element) {
+        if (element instanceof Radiogroup) {
+            return new RadiogroupViewBody();
+        } else if (element instanceof Boolean) {
+            return new BooleanViewBody();
+        } else {
+            throw new IllegalArgumentException("Unknown element type: " + element.getClass());
         }
-        else return new BooleanViewBody().buildViewBody(element, choiceBox);
     }
 }

@@ -1,5 +1,7 @@
 package com.example.quizmaster;
 
+import Models.Element;
+import Models.Page;
 import Models.Result;
 import Models.QuizGame;
 
@@ -7,10 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameManager {
-    private List<QuizGame> quizGames;
-    QuizGame qZ;
-    Result qD;
+    private static volatile GameManager instance;
+    private QuizGame qZ;
+    private Result qD;
     private int currentPageNr = 0;
+    private int score = 0;
+
+    public GameManager() {
+    }
+
+    public static GameManager getInstance() {
+        GameManager gm = instance;
+        if (gm == null){
+            synchronized (GameManager.class){
+                gm = new GameManager();
+            }
+        }
+        return gm;
+    }
 
     public int getCurrentPageNr() {
         return currentPageNr;
@@ -18,9 +34,6 @@ public class GameManager {
 
     public void nextPage() {
         currentPageNr++;
-    }
-    public GameManager() {
-        quizGames = new ArrayList<>();
     }
 
     public void setQuizGame(QuizGame game) {
@@ -36,4 +49,19 @@ public class GameManager {
     public void setQuizDetails(Result details) {
         qD = details;
     }
+
+    public void registerAnswer(Element element, String userAnswer) {
+        if (element.getCorrectAnswerString().equals(userAnswer)) {
+            score++;
+            System.out.println("✅ Correct!");
+        } else {
+            System.out.println("❌ Incorrect!");
+        }
+    }
+
+    public String getScore(){
+        return Integer.toString(score);
+    }
+
+
 }

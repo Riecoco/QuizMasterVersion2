@@ -1,0 +1,24 @@
+{
+  "quizId": "quiz001",
+  "name": "Java Basics Quiz",
+  "results": [
+    {
+      "playerName": "Alice",
+      "totalQuestions": 3,
+      "correctQuestions": 3,
+      "date": "2025-08-30T14:22:00Z"
+    },
+    {
+      "playerName": "Bob",
+      "totalQuestions": 3,
+      "correctQuestions": 2,
+      "date": "2025-08-30T15:10:00Z"
+    },
+    {
+      "playerName": "Charlie",
+      "totalQuestions": 3,
+      "correctQuestions": 1,
+      "date": "2025-08-31T09:05:00Z"
+    }
+  ]
+}
