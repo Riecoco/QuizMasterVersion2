@@ -1,33 +1,66 @@
 package com.example.quizmaster;
 
-import Models.Element;
-import Models.Page;
-import Models.Result;
-import Models.QuizGame;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.IntegerProperty;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import Models.Element;
+import Models.GameResult;
+import Models.Page;
+import Models.QuizGame;
+import Models.Result;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 public class GameManager {
+
     private static volatile GameManager instance;
     private QuizGame qZ;
-    private Result qD;
+    private String playerName = "";
+    private Result result;
+    private final List<GameResult> gameResults = new ArrayList<>();
     private int currentPageNr = 0;
-    private IntegerProperty score = new SimpleIntegerProperty(0);
-    private IntegerProperty timeLeft = new SimpleIntegerProperty(0);
+    private final IntegerProperty score = new SimpleIntegerProperty(0);
+    private final IntegerProperty timeLeft = new SimpleIntegerProperty(0);
 
     public GameManager() {
     }
 
     public static GameManager getInstance() {
         GameManager gm = instance;
-        if (gm == null){
-            synchronized (GameManager.class){
+        if (gm == null) {
+            synchronized (GameManager.class) {
                 gm = new GameManager();
             }
         }
         return gm;
+    }
+
+    public void startNewQuiz() {
+        if (qZ == null) {
+            throw new IllegalStateException("Quiz game not loaded. Please load a quiz first.");
+        }
+        if (qZ.getTitle() == null || qZ.getTitle().trim().isEmpty()) {
+            throw new IllegalStateException("Quiz title is missing");
+        }
+        if (qZ.getPages() == null || qZ.getPages().isEmpty()) {
+            throw new IllegalStateException("Quiz has no pages");
+        }
+
+        result = new Result();
+        result.setQuizName(qZ.getTitle());
+
+        gameResults.clear();
+        score.set(0);
+        currentPageNr = 0;
     }
 
     public int getCurrentPageNr() {
@@ -41,18 +74,22 @@ public class GameManager {
     public void setQuizGame(QuizGame game) {
         qZ = game;
     }
+
     public QuizGame getQuizGame() {
         return qZ;
     }
-    public Result getResult() {
-        return qD;
-    }
-
-    public void setQuizDetails(Result details) {
-        qD = details;
-    }
 
     public void registerAnswer(Element element, String userAnswer) {
+        if (element == null) {
+            throw new IllegalArgumentException("Element cannot be null");
+        }
+        if (userAnswer == null) {
+            throw new IllegalArgumentException("User answer cannot be null");
+        }
+        if (element.getCorrectAnswerString() == null) {
+            throw new IllegalStateException("Element has no correct answer defined");
+        }
+
         if (element.getCorrectAnswerString().equals(userAnswer)) {
             score.set(score.get() + 1);
             System.out.println("✅ Correct!");
@@ -64,9 +101,11 @@ public class GameManager {
     public IntegerProperty getScoreProperty() {
         return score;
     }
+
     public IntegerProperty getTimeLeftProperty() {
         return timeLeft;
     }
+
     public void setTimeLeft(int timeLeft) {
         this.timeLeft.set(timeLeft);
     }
@@ -198,7 +237,6 @@ public class GameManager {
             throw new RuntimeException("Unexpected error writing results.json: " + e.getMessage(), e);
         }
     }
-    
 
     private ObjectMapper createObjectMapperForWriting() {
         ObjectMapper mapper = new ObjectMapper();

@@ -1,29 +1,39 @@
 package com.example.quizmaster;
 
-import Models.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import Models.Element;
+import Models.GameResult;
+import Models.Page;
+import Models.QuizGame;
 import factories.Answerable;
 import factories.QuizViewBody;
 import factories.QuizViewBodyFactory;
 import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class GameController {
 
     public GameManager _gameManager = GameManager.getInstance();
-    private List<Answerable> currentAnswerOptions = new ArrayList<>();
+    private final List<Answerable> currentAnswerOptions = new ArrayList<>();
     private List<Element> elements;
+    private Button finishQuiz;
 
     private Timeline timeline;
 
@@ -46,18 +56,19 @@ public class GameController {
     @FXML
     private VBox quizOptions;
     @FXML
-    private Label countdownLabel; // Add this to your FXML
+    private VBox resultsTable;
 
     public void initialize(GameManager manager) {
         _gameManager = manager;
         StringBinding scoreBinding = Bindings.createStringBinding(() -> "Score: " + _gameManager.getScoreProperty().get(), _gameManager.getScoreProperty());
         quizScore.textProperty().bind(scoreBinding);
         progressBar.progressProperty().bind(
-            Bindings.createDoubleBinding(
-                () -> (double) _gameManager.getTimeLeftProperty().get() / _gameManager.getTimeLimit(),
-                _gameManager.getTimeLeftProperty()
-            )
+                Bindings.createDoubleBinding(
+                        () -> (double) _gameManager.getTimeLeftProperty().get() / _gameManager.getTimeLimit(),
+                        _gameManager.getTimeLeftProperty()
+                )
         );
+        _gameManager.startNewQuiz();
     }
 
     private void setUpQuizUI(QuizGame quizGame) {
@@ -139,30 +150,32 @@ public class GameController {
 
     private void countProgressBarDown(){
         // Countdown timer
-        if (timeline != null) timeline.stop();
-        
+        if (timeline != null) {
+            timeline.stop();
+        }
+
         // Initialize timeLeft with the time limit for current page
         int timeLimit = _gameManager.getTimeLimit();
         _gameManager.setTimeLeft(timeLimit);
 
         timeline = new Timeline(new KeyFrame(
-                    Duration.seconds(1),
-                    event -> {
-                        int currentTime = _gameManager.getTimeLeftProperty().get();
-                        if (currentTime > 0) {
-                            _gameManager.setTimeLeft(currentTime - 1);
-                        } else {
-                            timeline.stop();
-                            _gameManager.nextPage();
-                            checkIfQuizIsFinished();
-                        }
+                Duration.seconds(1),
+                event -> {
+                    int currentTime = _gameManager.getTimeLeftProperty().get();
+                    if (currentTime > 0) {
+                        _gameManager.setTimeLeft(currentTime - 1);
+                    } else {
+                        timeline.stop();
+                        _gameManager.nextPage();
+                        checkIfQuizIsFinished();
                     }
-                )
-            );
+                }
+        )
+        );
         timeline.setCycleCount(timeLimit + 1);
         timeline.play();
     }
-    
+
     private void populateQuizBody() {
         quizOptions.getChildren().clear();
         currentAnswerOptions.clear();
@@ -171,19 +184,21 @@ public class GameController {
         countProgressBarDown();
     }
 
-    private void buildElementUI(QuizViewBodyFactory factory){
+    private void buildElementUI(QuizViewBodyFactory factory) {
         // Build UI for each element
         for (Element element : elements) {
             QuizViewBody elementViewBody = factory.createElementViewBody(element);
             VBox vbox = elementViewBody.buildViewBody(element, new VBox());
             quizOptions.getChildren().add(vbox);
-        
+
             if (elementViewBody instanceof Answerable a) {
                 currentAnswerOptions.add(a);
                 // Process answer and advance when any option is selected
                 a.getRadioButtons().forEach(rb -> rb.setOnAction(e -> {
                     rb.setDisable(true);
-                    if (timeline != null) timeline.stop(); // Stop timer when answer is selected
+                    if (timeline != null) {
+                        timeline.stop(); // Stop timer when answer is selected
+                    }
                     processAnswerAndAdvance(e);
                     checkIfQuizIsFinished();
                 }));
@@ -196,16 +211,14 @@ public class GameController {
             nameForm.setVisible(false);
             nameForm.setManaged(false);
 
-            Result quizGameResult = new Result();
-            quizGameResult.setPlayerName(playerName.getText());
-            _gameManager.setQuizDetails(quizGameResult);
+            _gameManager.savePlayerName(playerName.getText());
 
             quizViewBodyBox.setManaged(true);
             quizViewBodyBox.setVisible(true);
 
             setUpQuizUI(_gameManager.getQuizGame());
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error in onEnterNameButtonClick: " + e.getMessage());
         }
     }
 
@@ -285,7 +298,6 @@ public class GameController {
         } catch (Exception e) {
             System.err.println("Error checking if quiz is finished: " + e.getMessage());
             quizOptions.getChildren().clear();
-            // Optionally show results screen here
         }
     }
 

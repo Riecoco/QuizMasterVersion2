@@ -39,12 +39,10 @@ public class MenuController {
                     menu.getChildren().add(new Label("❌ Error: File does not exist"));
                     return;
                 }
-
                 if (!file.canRead()) {
                     menu.getChildren().add(new Label("❌ Error: Cannot read file"));
                     return;
                 }
-
                 // Check if file is empty
                 if (file.length() == 0) {
                     menu.getChildren().add(new Label("❌ Error: File is empty"));
@@ -59,17 +57,14 @@ public class MenuController {
                     menu.getChildren().add(new Label("❌ Error: Failed to parse quiz file"));
                     return;
                 }
-
                 if (quiz.title == null || quiz.title.trim().isEmpty()) {
                     menu.getChildren().add(new Label("❌ Error: Quiz title is missing"));
                     return;
                 }
-
                 if (quiz.pages == null || quiz.pages.isEmpty()) {
                     menu.getChildren().add(new Label("❌ Error: Quiz has no pages"));
                     return;
                 }
-
                 // Validate pages
                 for (int i = 0; i < quiz.pages.size(); i++) {
                     Page page = quiz.pages.get(i);
@@ -86,7 +81,6 @@ public class MenuController {
                         return;
                     }
                 }
-
                 menu.getChildren().add(new Label("✅ Quiz loaded: " + quiz.title));
                 _gameManager.setQuizGame(quiz);
             } catch (com.fasterxml.jackson.core.JsonParseException e) {

@@ -3,22 +3,24 @@ package Models;
 import java.util.List;
 
 public class Result {
-    public String playerName;
-    public List<GameResult> gameResults;
 
-    public Result() {}
+    private String quizName;
+    private List<GameResult> gameResults;
 
-    public Result(String playerName, List<GameResult> gameResults) {
-        this.playerName = playerName;
+    public Result() {
+    }
+
+    public Result(String quizName, List<GameResult> gameResults) {
+        this.quizName = quizName;
         this.gameResults = gameResults;
     }
 
-    public String getPlayerName() {
-        return playerName;
+    public String getQuizName() {
+        return quizName;
     }
 
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
+    public void setQuizName(String quizName) {
+        this.quizName = quizName;
     }
 
     public List<GameResult> getGameResults() {
