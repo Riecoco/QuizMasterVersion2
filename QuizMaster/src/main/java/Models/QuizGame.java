@@ -7,7 +7,7 @@ import java.util.List;
 public class QuizGame implements Serializable {
     public String title;
     public String description;
-    public List<Page> pages = new ArrayList<Page>();
+    public List<Page> pages = new ArrayList<>();
     public String completedHtml;
     public List<CompletedHTMLOnCondition> completedHtmlOnCondition = new ArrayList<>();//change name
 

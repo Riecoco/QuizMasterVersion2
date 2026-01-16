@@ -1,15 +1,13 @@
 package com.example.quizmaster;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
-import Models.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import Models.Element;
+import Models.GameResult;
+import Models.Page;
+import Models.QuizGame;
 import factories.Answerable;
 import factories.QuizViewBody;
 import factories.QuizViewBodyFactory;
@@ -18,10 +16,14 @@ import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -29,7 +31,7 @@ import javafx.util.Duration;
 public class GameController {
 
     public GameManager _gameManager = GameManager.getInstance();
-    private List<Answerable> currentAnswerOptions = new ArrayList<>();
+    private final List<Answerable> currentAnswerOptions = new ArrayList<>();
     private List<Element> elements;
     private Button finishQuiz;
 
@@ -70,18 +72,50 @@ public class GameController {
     }
 
     private void setUpQuizUI(QuizGame quizGame) {
+        if (quizGame == null) {
+            System.err.println("Error: Quiz game is null");
+            quizOptions.getChildren().clear();
+            return;
+        }
+
         int pageNr = _gameManager.getCurrentPageNr();
+
+        if (quizGame.getPages() == null || quizGame.getPages().isEmpty()) {
+            System.err.println("Error: Quiz has no pages");
+            quizOptions.getChildren().clear();
+            return;
+        }
 
         if (pageNr >= quizGame.getPages().size()) {
             System.out.println("No more pages - end of quiz");
             quizOptions.getChildren().clear();
             return;
         }
+
+        if (pageNr < 0) {
+            System.err.println("Error: Invalid page number: " + pageNr);
+            quizOptions.getChildren().clear();
+            return;
+        }
+
         Page currentPage = quizGame.getPages().get(pageNr);
+        if (currentPage == null) {
+            System.err.println("Error: Page at index " + pageNr + " is null");
+            quizOptions.getChildren().clear();
+            return;
+        }
+
         elements = currentPage.elements;
-        quizName.setText(quizGame.title);
-        if (!elements.isEmpty()) {
-            questionTitle.setText(elements.get(0).getTitle());
+        if (elements == null || elements.isEmpty()) {
+            System.err.println("Error: Page has no elements");
+            quizOptions.getChildren().clear();
+            return;
+        }
+
+        quizName.setText(quizGame.title != null ? quizGame.title : "Untitled Quiz");
+        if (!elements.isEmpty() && elements.get(0) != null) {
+            String title = elements.get(0).getTitle();
+            questionTitle.setText(title != null ? title : "No title");
         }
         progressBarBox.setVisible(true);
         populateQuizBody();
@@ -157,85 +191,158 @@ public class GameController {
 
             setUpQuizUI(_gameManager.getQuizGame());
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error in onEnterNameButtonClick: " + e.getMessage());
         }
     }
 
     public void processAnswerAndAdvance(ActionEvent actionEvent) {
-        for (int i = 0; i < currentAnswerOptions.size(); i++) {
+        if (currentAnswerOptions == null || currentAnswerOptions.isEmpty()) {
+            System.err.println("Error: No answer options available");
+            return;
+        }
+
+        if (elements == null || elements.isEmpty()) {
+            System.err.println("Error: No elements available");
+            return;
+        }
+
+        if (currentAnswerOptions.size() != elements.size()) {
+            System.err.println("Warning: Mismatch between answer options and elements");
+        }
+
+        for (int i = 0; i < currentAnswerOptions.size() && i < elements.size(); i++) {
             Answerable answerView = currentAnswerOptions.get(i);
             Element element = elements.get(i);
 
-            String userAnswer = answerView.getSelectedAnswer();
-            System.out.println("User selected: " + userAnswer);
+            if (answerView == null) {
+                System.err.println("Warning: Answer view at index " + i + " is null");
+                continue;
+            }
 
-            _gameManager.registerAnswer(element, userAnswer);
+            if (element == null) {
+                System.err.println("Warning: Element at index " + i + " is null");
+                continue;
+            }
+
+            try {
+                String userAnswer = answerView.getSelectedAnswer();
+                if (userAnswer == null) {
+                    System.err.println("Warning: No answer selected for element " + i);
+                    continue;
+                }
+
+                System.out.println("User selected: " + userAnswer);
+                _gameManager.registerAnswer(element, userAnswer);
+            } catch (Exception e) {
+                System.err.println("Error processing answer for element " + i + ": " + e.getMessage());
+            }
         }
 
         _gameManager.nextPage();
     }
 
     public void checkIfQuizIsFinished() {
-        if (_gameManager.getCurrentPageNr() < _gameManager.getQuizGame().getPages().size()) {
-            setUpQuizUI(_gameManager.getQuizGame());
-        } else {
-            // End of quiz
-            System.out.println("Quiz finished!");
-            finishQuiz = new Button("Finish Quiz");
-            quizViewBodyBox.getChildren().add(finishQuiz);
-            finishQuiz.setOnAction(e -> {
-                _gameManager.appendResultToFile();
-                showResultsScreen();
-            });
-            if (timeline != null) {
-                timeline.stop();
+        try {
+            QuizGame quizGame = _gameManager.getQuizGame();
+            if (quizGame == null) {
+                System.err.println("Error: Quiz game is null");
+                quizOptions.getChildren().clear();
+                return;
             }
+
+            if (quizGame.getPages() == null) {
+                System.err.println("Error: Quiz pages are null");
+                quizOptions.getChildren().clear();
+                return;
+            }
+
+            if (_gameManager.getCurrentPageNr() < quizGame.getPages().size()) {
+                setUpQuizUI(quizGame);
+            } else {
+                // End of quiz
+                System.out.println("Quiz finished!");
+                finishQuiz = new Button("Finish Quiz");
+                quizViewBodyBox.getChildren().add(finishQuiz);
+                finishQuiz.setOnAction(e -> {
+                    try {
+                        _gameManager.appendResultToFile();
+                        showResultsScreen();
+                    } catch (Exception ex) {
+                        System.err.println("Error saving result: " + ex.getMessage());
+                    }
+                });
+                if (timeline != null) {
+                    timeline.stop();
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error checking if quiz is finished: " + e.getMessage());
+            quizOptions.getChildren().clear();
         }
     }
 
     private void showResultsScreen() {
-        quizViewBodyBox.setManaged(false);
-        progressBarBox.setManaged(false);
-        finishQuiz.setManaged(false);
-        finishQuiz.setVisible(false);
+        try {
+            quizViewBodyBox.setManaged(false);
+            progressBarBox.setManaged(false);
+            if (finishQuiz != null) {
+                finishQuiz.setManaged(false);
+                finishQuiz.setVisible(false);
+            }
 
-        List<GameResult> gameResults =
-                _gameManager.readResultsFromFile();
+            List<GameResult> gameResults;
+            try {
+                gameResults = _gameManager.readResultsFromFile();
+            } catch (Exception e) {
+                System.err.println("Error loading results: " + e.getMessage());
+                gameResults = new ArrayList<>();
+                Label errorLabel = new Label("Could not load previous results: " + e.getMessage());
+                resultsTable.getChildren().add(errorLabel);
+                return;
+            }
 
-        TableView<GameResult> resultsSummary = new TableView<>();
-        resultsSummary.setItems(
-                FXCollections.observableArrayList(gameResults)
-        );
+            if (gameResults == null) {
+                gameResults = new ArrayList<>();
+            }
 
-        TableColumn<GameResult, String> playersCol =
-                new TableColumn<>("Players");
-        playersCol.setCellValueFactory(
-                new PropertyValueFactory<>("playerName")
-        );
-        playersCol.setPrefWidth(30.0);
-        TableColumn<GameResult, Integer> totalQsCol =
-                new TableColumn<>("Total Questions");
-        totalQsCol.setCellValueFactory(
-                new PropertyValueFactory<>("totalQuestions")
-        );
-        totalQsCol.setPrefWidth(30.0);
-        TableColumn<GameResult, Integer> totalCorrectCol =
-                new TableColumn<>("Total Correct");
-        totalCorrectCol.setCellValueFactory(
-                new PropertyValueFactory<>("correctQuestions")
-        );
-        totalCorrectCol.setPrefWidth(30.0);
-        TableColumn<GameResult, LocalDateTime> dateTimes =
-                new TableColumn<>("Timestamp");
-        dateTimes.setCellValueFactory(
-                new PropertyValueFactory<>("dateTime")
-        );
+            TableView<GameResult> resultsSummary = new TableView<>();
+            resultsSummary.setItems(
+                    FXCollections.observableArrayList(gameResults)
+            );
 
-        resultsSummary.getColumns().setAll(
-                playersCol, totalQsCol, totalCorrectCol, dateTimes
-        );
+            TableColumn<GameResult, String> playersCol
+                    = new TableColumn<>("Players");
+            playersCol.setCellValueFactory(
+                    new PropertyValueFactory<>("playerName")
+            );
+            playersCol.setPrefWidth(30.0);
+            TableColumn<GameResult, Integer> totalQsCol
+                    = new TableColumn<>("Total Questions");
+            totalQsCol.setCellValueFactory(
+                    new PropertyValueFactory<>("totalQuestions")
+            );
+            totalQsCol.setPrefWidth(30.0);
+            TableColumn<GameResult, Integer> totalCorrectCol
+                    = new TableColumn<>("Total Correct");
+            totalCorrectCol.setCellValueFactory(
+                    new PropertyValueFactory<>("correctQuestions")
+            );
+            totalCorrectCol.setPrefWidth(30.0);
+            TableColumn<GameResult, LocalDateTime> dateTimes
+                    = new TableColumn<>("Timestamp");
+            dateTimes.setCellValueFactory(
+                    new PropertyValueFactory<>("dateTime")
+            );
 
-        resultsTable.getChildren().add(resultsSummary);
+            resultsSummary.getColumns().setAll(
+                    playersCol, totalQsCol, totalCorrectCol, dateTimes
+            );
+
+            resultsTable.getChildren().clear();
+            resultsTable.getChildren().add(resultsSummary);
+        } catch (Exception e) {
+            System.err.println("Error showing results screen: " + e.getMessage());
+        }
     }
 
 }

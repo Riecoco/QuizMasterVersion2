@@ -1,9 +1,9 @@
 package Models;
 
-import java.util.Date;
 import java.time.LocalDateTime;
 
 public class GameResult {
+
     public String playerName;
     public Integer totalQuestions;
     public Integer correctQuestions;
@@ -16,7 +16,8 @@ public class GameResult {
         this.dateTime = dateTime;
     }
 
-    public GameResult() {}
+    public GameResult() {
+    }
 
     public LocalDateTime getDateTime() {
         return dateTime;
