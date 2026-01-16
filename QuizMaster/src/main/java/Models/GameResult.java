@@ -1,28 +1,29 @@
 package Models;
 
 import java.util.Date;
+import java.time.LocalDateTime;
 
 public class GameResult {
     public String playerName;
     public Integer totalQuestions;
     public Integer correctQuestions;
-    public Date date;
+    public LocalDateTime dateTime;
 
-    public GameResult(String playerName, Integer totalQuestions, Integer correctQuestions, Date date) {
+    public GameResult(String playerName, Integer totalQuestions, Integer correctQuestions, LocalDateTime dateTime) {
         this.playerName = playerName;
         this.totalQuestions = totalQuestions;
         this.correctQuestions = correctQuestions;
-        this.date = date;
+        this.dateTime = dateTime;
     }
 
     public GameResult() {}
 
-    public Date getDate() {
-        return date;
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
     }
 
     public Integer getCorrectQuestions() {
