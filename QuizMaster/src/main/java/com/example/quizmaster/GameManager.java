@@ -1,5 +1,7 @@
 package com.example.quizmaster;
 
+import Models.Element;
+import Models.Page;
 import Models.Result;
 import Models.QuizGame;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -8,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameManager {
-    private List<QuizGame> quizGames;
-    QuizGame qZ;
-    Result qD;
+    private static volatile GameManager instance;
+    private QuizGame qZ;
+    private Result qD;
     private int currentPageNr = 0;
     private IntegerProperty score = new SimpleIntegerProperty(0);
     private IntegerProperty timeLeft = new SimpleIntegerProperty(0);
@@ -34,9 +36,6 @@ public class GameManager {
 
     public void nextPage() {
         currentPageNr++;
-    }
-    public GameManager() {
-        quizGames = new ArrayList<>();
     }
 
     public void setQuizGame(QuizGame game) {

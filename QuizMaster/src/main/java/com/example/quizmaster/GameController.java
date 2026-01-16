@@ -1,6 +1,8 @@
 package com.example.quizmaster;
 
 import Models.*;
+import factories.Answerable;
+import factories.QuizViewBody;
 import factories.QuizViewBodyFactory;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -10,6 +12,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
@@ -18,7 +21,12 @@ import java.util.List;
 
 public class GameController {
 
-    public GameManager _gameManager = new GameManager();
+    public GameManager _gameManager = GameManager.getInstance();
+    private List<Answerable> currentAnswerOptions = new ArrayList<>();
+    private List<Element> elements;
+
+    private Timeline timeline;
+
     @FXML
     public TextField playerName;
     @FXML
@@ -37,6 +45,8 @@ public class GameController {
     private VBox progressBarBox;
     @FXML
     private VBox quizOptions;
+    @FXML
+    private Label countdownLabel; // Add this to your FXML
 
     public void initialize(GameManager manager) {
         _gameManager = manager;
@@ -59,9 +69,13 @@ public class GameController {
             return;
         }
 
-        // Set header and question
+        Page currentPage = quizGame.getPages().get(pageNr);
+        elements = currentPage.elements;
+
         quizName.setText(quizGame.title);
-        questionTitle.setText(quizGame.getPages().get(pageNr).elements.getFirst().title);
+        if (!elements.isEmpty()) {
+            questionTitle.setText(elements.get(0).getTitle());
+        }
 
         progressBarBox.setVisible(true);
 
@@ -122,7 +136,6 @@ public class GameController {
         }
     }
 
-
     public void onEnterNameButtonClick(ActionEvent actionEvent) {
         try {
             nameForm.setVisible(false);
@@ -132,13 +145,10 @@ public class GameController {
             quizGameResult.setPlayerName(playerName.getText());
             _gameManager.setQuizDetails(quizGameResult);
 
-            System.out.println("Player name: " + quizGameResult.getPlayerName());
-
             quizViewBodyBox.setManaged(true);
             quizViewBodyBox.setVisible(true);
 
             setUpQuizUI(_gameManager.getQuizGame());
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -170,4 +180,15 @@ public class GameController {
         }
     }
 
+        if (_gameManager.getCurrentPageNr() < _gameManager.getQuizGame().getPages().size()) {
+            setUpQuizUI(_gameManager.getQuizGame());
+        } else {
+            // End of quiz
+            System.out.println("Quiz finished!");
+            quizOptions.getChildren().clear();
+            countdownLabel.setText("");
+            next.setDisable(true);
+            // Optionally show results screen here
+        }
+    }
 }

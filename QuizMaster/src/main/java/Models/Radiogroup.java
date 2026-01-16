@@ -15,6 +15,10 @@ public class Radiogroup extends Element {
         this.choices = choices;
         this.correctAnswer = correctAnswer;
     }
+    @Override
+    public String getCorrectAnswerString() {
+        return correctAnswer;
+    }
 
     public String getChoicesOrder() {
         return choicesOrder;

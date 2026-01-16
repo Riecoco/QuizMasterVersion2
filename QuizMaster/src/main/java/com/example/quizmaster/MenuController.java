@@ -21,20 +21,15 @@ import java.net.URL;
 
 public class MenuController {
 
-    private GameManager _gameManager = new GameManager();
-    private Stage stage;
-
+    private final GameManager _gameManager = GameManager.getInstance();
     @FXML
     private VBox menu;
-
-    private GameController gameController;
-
 
     @FXML
     protected void onLoadQuizButtonClick(ActionEvent event) throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Quiz File");
-        stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null) {
