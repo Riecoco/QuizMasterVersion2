@@ -4,7 +4,8 @@ import Models.Element;
 import Models.Page;
 import Models.Result;
 import Models.QuizGame;
-
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.IntegerProperty;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,8 @@ public class GameManager {
     private QuizGame qZ;
     private Result qD;
     private int currentPageNr = 0;
-    private int score = 0;
+    private IntegerProperty score = new SimpleIntegerProperty(0);
+    private IntegerProperty timeLeft = new SimpleIntegerProperty(0);
 
     public GameManager() {
     }
@@ -52,16 +54,26 @@ public class GameManager {
 
     public void registerAnswer(Element element, String userAnswer) {
         if (element.getCorrectAnswerString().equals(userAnswer)) {
-            score++;
+            score.set(score.get() + 1);
             System.out.println("✅ Correct!");
         } else {
             System.out.println("❌ Incorrect!");
         }
     }
 
-    public String getScore(){
-        return Integer.toString(score);
+    public IntegerProperty getScoreProperty() {
+        return score;
+    }
+    public IntegerProperty getTimeLeftProperty() {
+        return timeLeft;
+    }
+    public void setTimeLeft(int timeLeft) {
+        this.timeLeft.set(timeLeft);
     }
 
+    public int getTimeLimit() {
+        return qZ.getPages().get(currentPageNr).getTimeLimit();
+    }
+    
 
 }

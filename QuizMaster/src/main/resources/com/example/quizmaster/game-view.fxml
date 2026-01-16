@@ -6,6 +6,18 @@
 <?import javafx.scene.text.*?>
 
 <BorderPane prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.quizmaster.GameController">
+    <top>
+        <VBox fx:id="progressBarBox" alignment="CENTER" visible="false">
+            <ProgressBar id="progressBar" fx:id="progressBar" prefHeight="30.0" prefWidth="350.0" progress="1.0" BorderPane.alignment="CENTER">
+                <BorderPane.margin>
+                    <Insets top="50.0" />
+                </BorderPane.margin>
+            </ProgressBar>
+         <BorderPane.margin>
+            <Insets top="50.0" />
+         </BorderPane.margin>
+        </VBox>
+    </top>
    <center>
        <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
            <VBox id="nameForm" fx:id="nameForm" alignment="CENTER" fillWidth="false" prefHeight="98.0" prefWidth="279.0" spacing="5.0" VBox.vgrow="ALWAYS">
@@ -63,11 +75,4 @@
            </VBox>
        </VBox>
    </center>
-   <bottom>
-          <Button fx:id="next" alignment="CENTER" mnemonicParsing="false" onAction="#onNextButtonClick" prefHeight="40.0" prefWidth="325.0" text="Next" visible="false" BorderPane.alignment="CENTER">
-         <BorderPane.margin>
-            <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
-         </BorderPane.margin>
-          </Button>
-   </bottom>
 </BorderPane>
