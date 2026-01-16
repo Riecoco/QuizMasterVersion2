@@ -11,7 +11,9 @@ public class QuizGame implements Serializable {
     public String completedHtml;
     public List<CompletedHTMLOnCondition> completedHtmlOnCondition = new ArrayList<>();//change name
 
-    public QuizGame() {}
+    public QuizGame() {
+    }
+
     public QuizGame(String title, String description, List<Page> pages, String completedHtml, List<CompletedHTMLOnCondition> completedHtmlOnCondition) {
         this.title = title;
         this.description = description;

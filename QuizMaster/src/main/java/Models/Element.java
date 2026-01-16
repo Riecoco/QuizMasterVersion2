@@ -21,7 +21,9 @@ public abstract class Element {
     private String title;
     private boolean isRequired;
 
-    public Element() {}
+    public Element() {
+    }
+
     public Element(String name, Type type, String title, boolean isRequired) {
         this.name = name;
         this.type = type;

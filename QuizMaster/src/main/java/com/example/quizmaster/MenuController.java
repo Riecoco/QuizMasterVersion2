@@ -33,10 +33,71 @@ public class MenuController {
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            QuizGame quiz = objectMapper.readValue(file, QuizGame.class);
-            menu.getChildren().add(new Label("✅ Quiz loaded: " + quiz.title));
-            _gameManager.setQuizGame(quiz);
+            try {
+                // Check if file exists and is readable
+                if (!file.exists()) {
+                    menu.getChildren().add(new Label("❌ Error: File does not exist"));
+                    return;
+                }
+
+                if (!file.canRead()) {
+                    menu.getChildren().add(new Label("❌ Error: Cannot read file"));
+                    return;
+                }
+
+                // Check if file is empty
+                if (file.length() == 0) {
+                    menu.getChildren().add(new Label("❌ Error: File is empty"));
+                    return;
+                }
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                QuizGame quiz = objectMapper.readValue(file, QuizGame.class);
+
+                // Validate quiz data
+                if (quiz == null) {
+                    menu.getChildren().add(new Label("❌ Error: Failed to parse quiz file"));
+                    return;
+                }
+
+                if (quiz.title == null || quiz.title.trim().isEmpty()) {
+                    menu.getChildren().add(new Label("❌ Error: Quiz title is missing"));
+                    return;
+                }
+
+                if (quiz.pages == null || quiz.pages.isEmpty()) {
+                    menu.getChildren().add(new Label("❌ Error: Quiz has no pages"));
+                    return;
+                }
+
+                // Validate pages
+                for (int i = 0; i < quiz.pages.size(); i++) {
+                    Page page = quiz.pages.get(i);
+                    if (page == null) {
+                        menu.getChildren().add(new Label("❌ Error: Page " + (i + 1) + " is null"));
+                        return;
+                    }
+                    if (page.elements == null || page.elements.isEmpty()) {
+                        menu.getChildren().add(new Label("❌ Error: Page " + (i + 1) + " has no elements"));
+                        return;
+                    }
+                    if (page.timeLimit <= 0) {
+                        menu.getChildren().add(new Label("❌ Error: Page " + (i + 1) + " has invalid time limit"));
+                        return;
+                    }
+                }
+
+                menu.getChildren().add(new Label("✅ Quiz loaded: " + quiz.title));
+                _gameManager.setQuizGame(quiz);
+            } catch (com.fasterxml.jackson.core.JsonParseException e) {
+                menu.getChildren().add(new Label("❌ Error: Invalid JSON format - " + e.getMessage()));
+            } catch (com.fasterxml.jackson.databind.JsonMappingException e) {
+                menu.getChildren().add(new Label("❌ Error: JSON mapping error - " + e.getMessage()));
+            } catch (IOException e) {
+                menu.getChildren().add(new Label("❌ Error: Failed to read file - " + e.getMessage()));
+            } catch (Exception e) {
+                menu.getChildren().add(new Label("❌ Error: Unexpected error - " + e.getMessage()));
+            }
         }
     }
 

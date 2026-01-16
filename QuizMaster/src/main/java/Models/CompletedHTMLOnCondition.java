@@ -4,7 +4,9 @@ public class CompletedHTMLOnCondition {
     public String expression;
     public String html;
 
-    public CompletedHTMLOnCondition() {}
+    public CompletedHTMLOnCondition() {
+    }
+
     public CompletedHTMLOnCondition(String expression, String html) {
         this.expression = expression;
         this.html = html;

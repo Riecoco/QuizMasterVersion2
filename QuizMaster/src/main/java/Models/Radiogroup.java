@@ -8,13 +8,16 @@ public class Radiogroup extends Element {
     public List<String> choices = new ArrayList<>();
     public String correctAnswer;
 
-    public Radiogroup() {}
-    public Radiogroup(String name, Type type, String title, boolean isRequired, String choicesOrder, List<String> choices, String correctAnswer){
+    public Radiogroup() {
+    }
+
+    public Radiogroup(String name, Type type, String title, boolean isRequired, String choicesOrder, List<String> choices, String correctAnswer) {
         super(name, type, title, isRequired);
         this.choicesOrder = choicesOrder;
         this.choices = choices;
         this.correctAnswer = correctAnswer;
     }
+
     @Override
     public String getCorrectAnswerString() {
         return correctAnswer;
