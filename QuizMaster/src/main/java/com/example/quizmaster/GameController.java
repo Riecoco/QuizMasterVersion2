@@ -2,6 +2,12 @@ package com.example.quizmaster;
 
 import Models.*;
 import factories.QuizViewBodyFactory;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -18,18 +24,30 @@ public class GameController {
     @FXML
     public VBox nameForm;
     @FXML
-    public Button next;
-    @FXML
     public VBox quizViewBodyBox;
     @FXML
     private Label quizName;
     @FXML
     private Label questionTitle;
     @FXML
+    private Label quizScore;
+    @FXML
+    private ProgressBar progressBar;
+    @FXML
+    private VBox progressBarBox;
+    @FXML
     private VBox quizOptions;
 
     public void initialize(GameManager manager) {
         _gameManager = manager;
+        StringBinding scoreBinding = Bindings.createStringBinding(() -> "Score: " + _gameManager.getScoreProperty().get(), _gameManager.getScoreProperty());
+        quizScore.textProperty().bind(scoreBinding);
+        progressBar.progressProperty().bind(
+            Bindings.createDoubleBinding(
+                () -> (double) _gameManager.getTimeLeftProperty().get() / _gameManager.getTimeLimit(),
+                _gameManager.getTimeLeftProperty()
+            )
+        );
     }
 
     private void setUpQuizUI(QuizGame quizGame) {
@@ -37,7 +55,7 @@ public class GameController {
 
         if (pageNr >= quizGame.getPages().size()) {
             System.out.println("No more pages - end of quiz");
-            // TO DO: Show results on the screen
+            quizOptions.getChildren().clear();
             return;
         }
 
@@ -45,22 +63,62 @@ public class GameController {
         quizName.setText(quizGame.title);
         questionTitle.setText(quizGame.getPages().get(pageNr).elements.getFirst().title);
 
-        // Populate the options
-        populateQuizBody(quizGame);
+        progressBarBox.setVisible(true);
+
+        populateQuizBody();
     }
 
-    private void populateQuizBody(QuizGame quizGame) {
-        int pageNr = _gameManager.getCurrentPageNr();
-        if (pageNr >= quizGame.getPages().size()) return;
+    private void countProgressBarDown(){
+        // Countdown timer
+        if (timeline != null) timeline.stop();
+        
+        // Initialize timeLeft with the time limit for current page
+        int timeLimit = _gameManager.getTimeLimit();
+        _gameManager.setTimeLeft(timeLimit);
 
-        List<Element> elements = quizGame.getPages().get(pageNr).elements;
-
+        timeline = new Timeline(new KeyFrame(
+                    Duration.seconds(1),
+                    event -> {
+                        int currentTime = _gameManager.getTimeLeftProperty().get();
+                        if (currentTime > 0) {
+                            _gameManager.setTimeLeft(currentTime - 1);
+                        } else {
+                            timeline.stop();
+                            _gameManager.nextPage();
+                            checkIfQuizIsFinished();
+                        }
+                    }
+                )
+            );
+        timeline.setCycleCount(timeLimit + 1);
+        timeline.play();
+    }
+    
+    private void populateQuizBody() {
         quizOptions.getChildren().clear();
+        currentAnswerOptions.clear();
         QuizViewBodyFactory factory = new QuizViewBodyFactory();
-        for (Element e : elements) {
-            VBox elementViewBody = factory.createElementViewBody(e);
+        buildElementUI(factory);
+        countProgressBarDown();
+    }
 
-            quizOptions.getChildren().add(elementViewBody);
+    private void buildElementUI(QuizViewBodyFactory factory){
+        // Build UI for each element
+        for (Element element : elements) {
+            QuizViewBody elementViewBody = factory.createElementViewBody(element);
+            VBox vbox = elementViewBody.buildViewBody(element, new VBox());
+            quizOptions.getChildren().add(vbox);
+        
+            if (elementViewBody instanceof Answerable a) {
+                currentAnswerOptions.add(a);
+                // Process answer and advance when any option is selected
+                a.getRadioButtons().forEach(rb -> rb.setOnAction(e -> {
+                    rb.setDisable(true);
+                    if (timeline != null) timeline.stop(); // Stop timer when answer is selected
+                    processAnswerAndAdvance(e);
+                    checkIfQuizIsFinished();
+                }));
+            }
         }
     }
 
@@ -78,8 +136,6 @@ public class GameController {
 
             quizViewBodyBox.setManaged(true);
             quizViewBodyBox.setVisible(true);
-            next.setManaged(true);
-            next.setVisible(true);
 
             setUpQuizUI(_gameManager.getQuizGame());
 
@@ -88,10 +144,30 @@ public class GameController {
         }
     }
 
+    public void processAnswerAndAdvance(ActionEvent actionEvent){
+        for (int i = 0; i < currentAnswerOptions.size(); i++) {
+            Answerable answerView = currentAnswerOptions.get(i);
+            Element element = elements.get(i);
 
-    public void onNextButtonClick(ActionEvent actionEvent) {
+            String userAnswer = answerView.getSelectedAnswer();
+            System.out.println("User selected: " + userAnswer);
+
+            _gameManager.registerAnswer(element, userAnswer);
+        }
+
         _gameManager.nextPage();
-        setUpQuizUI(_gameManager.getQuizGame());
+    }
+
+    public void checkIfQuizIsFinished() {
+
+        if (_gameManager.getCurrentPageNr() < _gameManager.getQuizGame().getPages().size()) {
+            setUpQuizUI(_gameManager.getQuizGame());
+        } else {
+            // End of quiz
+            System.out.println("Quiz finished!");
+            quizOptions.getChildren().clear();
+            // Optionally show results screen here
+        }
     }
 
 }
